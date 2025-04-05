@@ -1,0 +1,159 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 220 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    --primary: 42 87% 55%;
+    --primary-foreground: 220 20% 10%;
+
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 220 20% 10%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 220 10% 40%;
+
+    --accent: 42 87% 55%;
+    --accent-foreground: 220 20% 10%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 20% 90%;
+    --input: 220 20% 90%;
+    --ring: 42 87% 55%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 20% 98%;
+    --sidebar-foreground: 220 20% 10%;
+    --sidebar-primary: 42 87% 55%;
+    --sidebar-primary-foreground: 220 20% 10%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 20% 90%;
+    --sidebar-ring: 42 87% 55%;
+  }
+
+  .dark {
+    --background: 220 25% 10%;
+    --foreground: 0 0% 95%;
+
+    --card: 220 25% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 220 25% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 42 80% 55%;
+    --primary-foreground: 220 25% 10%;
+
+    --secondary: 220 25% 16%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 220 25% 16%;
+    --muted-foreground: 220 15% 70%;
+
+    --accent: 42 80% 55%;
+    --accent-foreground: 220 25% 10%;
+
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 0 0% 95%;
+
+    --border: 220 25% 16%;
+    --input: 220 25% 16%;
+    --ring: 42 80% 55%;
+    
+    --sidebar-background: 220 25% 12%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 42 80% 55%;
+    --sidebar-primary-foreground: 220 25% 10%;
+    --sidebar-accent: 220 25% 16%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 25% 16%;
+    --sidebar-ring: 42 80% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .code-block {
+    @apply bg-muted p-4 rounded-lg overflow-auto font-mono text-sm;
+  }
+  
+  .snippet-card {
+    @apply bg-card rounded-lg border p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+  }
+  
+  .language-badge {
+    @apply px-2 py-1 text-xs rounded-full font-medium;
+  }
+}
+
+/* Language badge colors - making them more calm */
+.language-javascript {
+  @apply bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300;
+}
+
+.language-typescript {
+  @apply bg-blue-50 text-blue-800 dark:bg-blue-950/30 dark:text-blue-300;
+}
+
+.language-python {
+  @apply bg-green-50 text-green-800 dark:bg-green-950/30 dark:text-green-300;
+}
+
+.language-java {
+  @apply bg-orange-50 text-orange-800 dark:bg-orange-950/30 dark:text-orange-300;
+}
+
+.language-csharp {
+  @apply bg-purple-50 text-purple-800 dark:bg-purple-950/30 dark:text-purple-300;
+}
+
+.language-html {
+  @apply bg-red-50 text-red-800 dark:bg-red-950/30 dark:text-red-300;
+}
+
+.language-css {
+  @apply bg-pink-50 text-pink-800 dark:bg-pink-950/30 dark:text-pink-300;
+}
+
+.language-php {
+  @apply bg-indigo-50 text-indigo-800 dark:bg-indigo-950/30 dark:text-indigo-300;
+}
+
+.language-rust {
+  @apply bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300;
+}
+
+.language-go {
+  @apply bg-cyan-50 text-cyan-800 dark:bg-cyan-950/30 dark:text-cyan-300;
+}
+
+.language-ruby {
+  @apply bg-rose-50 text-rose-800 dark:bg-rose-950/30 dark:text-rose-300;
+}
+
+.language-other {
+  @apply bg-gray-50 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300;
+}

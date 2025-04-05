@@ -1,0 +1,6 @@
+python-dotenv==1.0.1
+google-generativeai==0.3.2
+numpy==1.26.4
+supabase==1.2.0
+flask==3.0.2
+flask-cors==4.0.0 
