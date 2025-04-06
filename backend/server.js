@@ -14,6 +14,7 @@ const corsOptions = {
       ? [
           "https://code-cache.vercel.app",
           "https://codecache.vercel.app",
+          "https://code-cache-flame.vercel.app",
           "http://localhost:5173",
         ] // Add all possible Vercel domains
       : "http://localhost:5173",
@@ -25,6 +26,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static("public"));
+
+// Handle CORS preflight requests
+app.options("*", cors(corsOptions));
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
