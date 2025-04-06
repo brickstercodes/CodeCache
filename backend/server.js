@@ -6,7 +6,19 @@ const { spawn } = require("child_process");
 const crypto = require("crypto");
 
 const app = express();
-app.use(cors());
+
+// Configure CORS with options
+const corsOptions = {
+  origin:
+    process.env.NODE_ENV === "production"
+      ? ["https://snippet-library.vercel.app", "http://localhost:5173"] // Add your Vercel domain here
+      : "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static("public"));
 
