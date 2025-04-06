@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CheckCircle, Upload as UploadIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle, Upload as UploadIcon, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,14 @@ const Upload = () => {
   });
   const [showPreview, setShowPreview] = useState(false);
 
+  // Check for upload token
+  useEffect(() => {
+    const uploadToken = sessionStorage.getItem("uploadToken");
+    if (!uploadToken) {
+      window.location.href = "/templates";
+    }
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -51,10 +59,16 @@ const Upload = () => {
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
+      const uploadToken = sessionStorage.getItem("uploadToken");
+      if (!uploadToken) {
+        throw new Error("Upload token not found");
+      }
+
       const response = await fetch('http://localhost:4872/templates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'uploadToken': uploadToken
         },
         body: JSON.stringify({
           title: formData.title,
@@ -67,7 +81,8 @@ const Upload = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload snippet');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to upload snippet');
       }
 
       const data = await response.json();
@@ -104,7 +119,10 @@ const Upload = () => {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">Add to the Cache</h1>
+        <h1 className="text-3xl font-bold flex items-center justify-center gap-2">
+          <Code2 className="h-8 w-8 text-primary" />
+          Add to the Cache
+        </h1>
         <p className="text-muted-foreground">
           Contribute to the library by uploading your own code snippets
         </p>

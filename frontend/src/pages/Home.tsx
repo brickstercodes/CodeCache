@@ -1,109 +1,109 @@
-
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Code, MessageSquare, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { mockSnippets } from "@/data/mockData";
+import { UploadPasswordModal } from "@/components/UploadPasswordModal";
 
 const Home = () => {
-  const featuredSnippets = mockSnippets.slice(0, 3);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/templates?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleUploadClick = () => {
+    const uploadToken = sessionStorage.getItem("uploadToken");
+    if (uploadToken) {
+      window.location.href = "/upload";
+    } else {
+      setIsPasswordModalOpen(true);
+    }
+  };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-16 py-8">
       {/* Hero Section */}
-      <section className="text-center py-12 px-4 space-y-6">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-          Code <span className="text-primary">Cache</span>
-        </h1>
+      <section className="text-center space-y-8">
+        <div className="flex flex-col items-center gap-4">
+          {/* Logo */}
+          <div className="bg-primary/10 rounded-full p-6 w-24 h-24 flex items-center justify-center">
+            <Code className="h-12 w-12 text-primary" />
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            Code <span className="text-primary">Cache</span>
+          </h1>
+        </div>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           A modern cache of code snippets for developers. Find solutions, share your code, and collaborate with the community.
         </p>
-        <div className="max-w-md mx-auto flex gap-2">
-          <Input placeholder="Search for snippets..." className="flex-1" />
+        <form onSubmit={handleSearch} className="max-w-md mx-auto flex gap-2">
+          <Input 
+            placeholder="Search for snippets..." 
+            className="flex-1" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <Button type="submit">
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
-        </div>
+        </form>
       </section>
 
       {/* Features */}
-      <section className="py-8">
+      <section>
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="bg-card border rounded-lg p-6 text-center">
-            <div className="bg-primary/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mx-auto mb-4">
-              <Code className="h-6 w-6 text-primary" />
+          <div className="group bg-card hover:bg-primary border rounded-xl p-8 text-center transition-all duration-300 hover:shadow-lg">
+            <div className="bg-primary/10 group-hover:bg-white/10 rounded-full p-4 w-16 h-16 flex items-center justify-center mx-auto mb-6 transition-colors">
+              <Code className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Browse Snippets</h3>
-            <p className="text-muted-foreground mb-4">Explore a vast cache of code snippets across multiple languages and frameworks.</p>
-            <Link to="/templates">
-              <Button variant="outline" className="w-full">
+            <h3 className="text-2xl font-semibold mb-3 group-hover:text-white transition-colors">Browse Snippets</h3>
+            <p className="text-muted-foreground mb-6 group-hover:text-white/70 transition-colors">Explore a vast cache of code snippets across multiple languages and frameworks.</p>
+            <Link to="/templates" className="block">
+              <Button variant="outline" className="w-full group-hover:border-white group-hover:text-white transition-colors">
                 Browse Library
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </Link>
           </div>
           
-          <div className="bg-card border rounded-lg p-6 text-center">
-            <div className="bg-primary/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="h-6 w-6 text-primary" />
+          <div className="group bg-card hover:bg-primary border rounded-xl p-8 text-center transition-all duration-300 hover:shadow-lg">
+            <div className="bg-primary/10 group-hover:bg-white/10 rounded-full p-4 w-16 h-16 flex items-center justify-center mx-auto mb-6 transition-colors">
+              <MessageSquare className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">AI Assistant</h3>
-            <p className="text-muted-foreground mb-4">Chat with our AI to find the perfect code snippets for your project needs.</p>
-            <Link to="/chat">
-              <Button variant="outline" className="w-full">
+            <h3 className="text-2xl font-semibold mb-3 group-hover:text-white transition-colors">AI Assistant</h3>
+            <p className="text-muted-foreground mb-6 group-hover:text-white/70 transition-colors">Chat with our AI to find the perfect code snippets for your project needs.</p>
+            <Link to="/chat" className="block">
+              <Button variant="outline" className="w-full group-hover:border-white group-hover:text-white transition-colors">
                 Start Chatting
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </Link>
           </div>
           
-          <div className="bg-card border rounded-lg p-6 text-center">
-            <div className="bg-primary/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mx-auto mb-4">
-              <Upload className="h-6 w-6 text-primary" />
+          <div className="group bg-card hover:bg-primary border rounded-xl p-8 text-center transition-all duration-300 hover:shadow-lg">
+            <div className="bg-primary/10 group-hover:bg-white/10 rounded-full p-4 w-16 h-16 flex items-center justify-center mx-auto mb-6 transition-colors">
+              <Upload className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Share Your Code</h3>
-            <p className="text-muted-foreground mb-4">Contribute to the community by uploading your own code snippets.</p>
-            <Link to="/upload">
-              <Button variant="outline" className="w-full">
-                Upload Now
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
+            <h3 className="text-2xl font-semibold mb-3 group-hover:text-white transition-colors">Share Your Code</h3>
+            <p className="text-muted-foreground mb-6 group-hover:text-white/70 transition-colors">Contribute to the community by uploading your own code snippets.</p>
+            <Button onClick={handleUploadClick}>Upload Now</Button>
           </div>
         </div>
       </section>
 
-      {/* Featured Snippets */}
-      <section className="py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Featured Snippets</h2>
-          <Link to="/templates" className="text-primary flex items-center hover:underline">
-            View all snippets
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Link>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          {featuredSnippets.map((snippet) => (
-            <Link key={snippet.id} to={`/templates/${snippet.id}`} className="snippet-card">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-medium truncate">{snippet.title}</h3>
-                <span className={`language-${snippet.language.toLowerCase()} language-badge`}>
-                  {snippet.language}
-                </span>
-              </div>
-              <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                {snippet.description}
-              </p>
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>By {snippet.publisher}</span>
-                <span>{new Date(snippet.createdAt).toLocaleDateString()}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* Add UploadPasswordModal */}
+      <UploadPasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        targetPath="/upload"
+      />
     </div>
   );
 };

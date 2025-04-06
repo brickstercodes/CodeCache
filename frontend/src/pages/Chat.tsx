@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { Send, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -99,7 +99,10 @@ const Chat = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)]">
       <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold">AI Chat Assistant</h1>
+        <h1 className="text-3xl font-bold flex items-center justify-center gap-2">
+          <MessageSquareText className="h-8 w-8 text-primary" />
+          AI Chat Assistant
+        </h1>
         <p className="text-muted-foreground">
           Ask questions about code snippets or get recommendations
         </p>

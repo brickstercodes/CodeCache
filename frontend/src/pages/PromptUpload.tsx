@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CheckCircle, Upload as UploadIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle, Upload as UploadIcon, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,14 @@ const PromptUpload = () => {
     publisher: ""
   });
 
+  // Check for upload token
+  useEffect(() => {
+    const uploadToken = sessionStorage.getItem("uploadToken");
+    if (!uploadToken) {
+      window.location.href = "/prompts";
+    }
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -50,10 +58,16 @@ const PromptUpload = () => {
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
+      const uploadToken = sessionStorage.getItem("uploadToken");
+      if (!uploadToken) {
+        throw new Error("Upload token not found");
+      }
+
       const response = await fetch('http://localhost:4872/prompts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'uploadToken': uploadToken
         },
         body: JSON.stringify({
           ...formData,
@@ -62,7 +76,8 @@ const PromptUpload = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload prompt');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to upload prompt');
       }
 
       const data = await response.json();
@@ -100,7 +115,10 @@ const PromptUpload = () => {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">Add to Prompt Cache</h1>
+        <h1 className="text-3xl font-bold flex items-center justify-center gap-2">
+          <Lightbulb className="h-8 w-8 text-yellow-500" />
+          Add to Prompt Cache
+        </h1>
         <p className="text-muted-foreground">
           Share your effective prompts with the community
         </p>

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Search, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { UploadPasswordModal } from "@/components/UploadPasswordModal";
 
 interface Template {
   id: string;
@@ -18,9 +19,10 @@ interface Template {
 const Templates = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const { toast } = useToast();
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const fetchTemplates = async (query: string = "") => {
     setIsLoading(true);
@@ -50,34 +52,55 @@ const Templates = () => {
     }
   };
 
-  // Initial load
+  // Initial load - use search param if present
   useEffect(() => {
-    fetchTemplates();
+    const searchQuery = searchParams.get("search") || "";
+    setSearchQuery(searchQuery);
+    fetchTemplates(searchQuery);
   }, []);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
+    setSearchParams(query ? { search: query } : {});
     fetchTemplates(query);
+  };
+
+  const handleAddTemplate = () => {
+    const uploadToken = sessionStorage.getItem("uploadToken");
+    if (uploadToken) {
+      window.location.href = "/upload";
+    } else {
+      setIsPasswordModalOpen(true);
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Code Templates</h1>
-        <Link to="/upload">
-          <Button>Add Template</Button>
-        </Link>
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Code2 className="h-8 w-8 text-primary" />
+            Code Templates
+          </h1>
+          <p className="text-muted-foreground">
+            Browse and search through code snippets
+          </p>
+        </div>
+        <Button onClick={handleAddTemplate}>Add Template</Button>
       </div>
 
       <div className="flex gap-4">
-        <Input
-          placeholder="Search templates by title, description, or AI description..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="flex-1"
-        />
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search templates by title, description, or AI description..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       {isLoading ? (
@@ -127,6 +150,12 @@ const Templates = () => {
           )}
         </>
       )}
+
+      <UploadPasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        targetPath="/upload"
+      />
     </div>
   );
 };

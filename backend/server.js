@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const { spawn } = require("child_process");
+const crypto = require("crypto");
 
 const app = express();
 app.use(cors());
@@ -13,6 +14,63 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+// Password verification middleware
+const verifyUploadPassword = (req, res, next) => {
+  const { uploadToken } = req.headers;
+
+  if (!uploadToken) {
+    return res.status(401).json({ error: "Upload token required" });
+  }
+
+  // Compare with hashed password from environment variable
+  const hashedPassword = crypto
+    .createHash("sha256")
+    .update(process.env.UPLOAD_PASSWORD || "default-password")
+    .digest("hex");
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(uploadToken)
+    .digest("hex");
+
+  if (hashedToken !== hashedPassword) {
+    return res.status(401).json({ error: "Invalid upload token" });
+  }
+
+  next();
+};
+
+// Password verification endpoint
+app.post("/verify-upload-password", (req, res) => {
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ error: "Password required" });
+  }
+
+  const hashedPassword = crypto
+    .createHash("sha256")
+    .update(process.env.UPLOAD_PASSWORD || "default-password")
+    .digest("hex");
+
+  const hashedInput = crypto
+    .createHash("sha256")
+    .update(password)
+    .digest("hex");
+
+  if (hashedInput === hashedPassword) {
+    // Generate a session token
+    const token = crypto
+      .createHash("sha256")
+      .update(password + Date.now().toString())
+      .digest("hex");
+
+    res.json({ success: true, token });
+  } else {
+    res.status(401).json({ error: "Invalid password" });
+  }
+});
 
 // 1️⃣ Get all templates
 app.get("/templates", async (req, res) => {
@@ -42,7 +100,7 @@ app.get("/templates/:id", async (req, res) => {
 });
 
 // 3️⃣ Upload a new template
-app.post("/templates", async (req, res) => {
+app.post("/templates", verifyUploadPassword, async (req, res) => {
   try {
     const { title, description, code_snippet, language, publisher } = req.body;
 
@@ -307,7 +365,7 @@ app.post("/recommend", async (req, res) => {
 });
 
 // Prompt Cache endpoints
-app.post("/prompts", async (req, res) => {
+app.post("/prompts", verifyUploadPassword, async (req, res) => {
   try {
     const {
       title,
