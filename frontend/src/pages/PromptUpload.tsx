@@ -220,6 +220,7 @@ const PromptUpload = () => {
               placeholder="Describe what this prompt is good for and how to use it effectively..."
               value={formData.description}
               onChange={handleChange}
+              className="font-mono min-h-[150px] whitespace-pre-wrap"
               required
             />
           </div>

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, Lightbulb } from "lucide-react";
+import { UploadPasswordModal } from "@/components/UploadPasswordModal";
 
 interface Prompt {
   id: string;
@@ -25,6 +26,7 @@ const Prompts = () => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const fetchPrompts = async (query: string = "") => {
     try {
@@ -61,6 +63,15 @@ const Prompts = () => {
     setSearchQuery(e.target.value);
   };
 
+  const handleAddPrompt = () => {
+    const uploadToken = sessionStorage.getItem("uploadToken");
+    if (uploadToken) {
+      window.location.href = "/prompts/upload";
+    } else {
+      setIsPasswordModalOpen(true);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -73,12 +84,10 @@ const Prompts = () => {
             Browse and search through effective AI prompts
           </p>
         </div>
-        <Link to="/prompts/upload">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Prompt
-          </Button>
-        </Link>
+        <Button onClick={handleAddPrompt}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Prompt
+        </Button>
       </div>
 
       <div className="relative mb-6">
@@ -121,7 +130,7 @@ const Prompts = () => {
                 </div>
               </div>
 
-              <p className="text-muted-foreground mb-4">{prompt.description}</p>
+              <p className="text-muted-foreground mb-4 whitespace-pre-wrap font-mono">{prompt.description}</p>
 
               <div className="bg-muted p-4 rounded-md mb-4 font-mono text-sm whitespace-pre-wrap">
                 {prompt.prompt_text}
@@ -154,6 +163,12 @@ const Prompts = () => {
           ))}
         </div>
       )}
+
+      <UploadPasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        targetPath="/prompts/upload"
+      />
     </div>
   );
 };

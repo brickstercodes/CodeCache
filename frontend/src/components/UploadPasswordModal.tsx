@@ -44,14 +44,23 @@ export function UploadPasswordModal({
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Store the token in sessionStorage (cleared when browser is closed)
+        // Store the token in sessionStorage
         sessionStorage.setItem("uploadToken", data.token);
+        
+        // Clear the password field
+        setPassword("");
+        
+        // Show success toast
         toast({
           title: "Access granted",
           description: "You can now upload content",
         });
+
+        // Close the modal
         onClose();
-        navigate(targetPath);
+
+        // Use window.location for a full page refresh to ensure token is loaded
+        window.location.href = targetPath;
       } else {
         throw new Error(data.error || "Invalid password");
       }
@@ -61,6 +70,8 @@ export function UploadPasswordModal({
         description: error instanceof Error ? error.message : "Invalid password",
         variant: "destructive",
       });
+      // Clear the password field on error
+      setPassword("");
     } finally {
       setIsLoading(false);
     }

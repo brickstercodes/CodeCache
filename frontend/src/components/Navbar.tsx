@@ -22,7 +22,9 @@ export function Navbar() {
           )}
         >
           <span className="flex items-center space-x-2">
-            <Home className="h-5 w-5" />
+            <span className="flex items-center justify-center bg-primary/10 rounded-full p-1">
+              <span className="font-mono font-bold text-primary text-sm">&gt;_</span>
+            </span>
             <span>Home</span>
           </span>
         </Link>

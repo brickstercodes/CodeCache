@@ -32,8 +32,10 @@ const Home = () => {
       <section className="text-center space-y-8">
         <div className="flex flex-col items-center gap-4">
           {/* Logo */}
-          <div className="bg-primary/10 rounded-full p-6 w-24 h-24 flex items-center justify-center">
-            <Code className="h-12 w-12 text-primary" />
+          <div className="bg-primary/10 rounded-full p-8 w-32 h-32 flex items-center justify-center shadow-lg shadow-primary/10">
+            <span className="text-5xl font-mono font-bold text-primary tracking-tighter">
+              &gt;_
+            </span>
           </div>
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
             Code <span className="text-primary">Cache</span>

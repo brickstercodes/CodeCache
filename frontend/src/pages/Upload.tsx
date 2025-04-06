@@ -61,14 +61,14 @@ const Upload = () => {
 
       const uploadToken = sessionStorage.getItem("uploadToken");
       if (!uploadToken) {
-        throw new Error("Upload token not found");
+        throw new Error("Upload token not found. Please authenticate again.");
       }
 
       const response = await fetch('http://localhost:4872/templates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'uploadToken': uploadToken
+          'uploadtoken': uploadToken
         },
         body: JSON.stringify({
           title: formData.title,
