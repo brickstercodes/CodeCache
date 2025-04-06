@@ -11,7 +11,11 @@ const app = express();
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
-      ? ["https://snippet-library.vercel.app", "http://localhost:5173"] // Add your Vercel domain here
+      ? [
+          "https://code-cache.vercel.app",
+          "https://codecache.vercel.app",
+          "http://localhost:5173",
+        ] // Add all possible Vercel domains
       : "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],

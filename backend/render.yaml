@@ -2,6 +2,7 @@ services:
   - type: web
     name: snippet-library-backend
     env: node
+    rootDirectory: backend
     buildCommand: npm install
     startCommand: node server.js
     envVars:

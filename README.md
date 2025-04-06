@@ -70,9 +70,16 @@ npm run dev
 1. Create a new Web Service on Render
 2. Connect your GitHub repository
 3. Use the following settings:
+   - Root Directory: `backend`
    - Build Command: `npm install`
    - Start Command: `node server.js`
-4. Add environment variables in Render dashboard
+   - Environment: Node
+4. Add environment variables in Render dashboard:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `GOOGLE_API_KEY`
+   - `UPLOAD_PASSWORD`
+   - `NODE_ENV`: `production`
 5. The service will be available at `https://your-service-name.onrender.com`
 
 ### Frontend (Vercel)
@@ -81,9 +88,9 @@ npm run dev
 2. Import the repository in Vercel
 3. Set the following:
    - Framework Preset: Vite
-   - Root Directory: frontend
+   - Root Directory: `frontend`
    - Build Command: `npm run build`
-   - Output Directory: dist
+   - Output Directory: `dist`
 4. Add environment variables in Vercel dashboard:
    - `VITE_API_URL`: Your Render backend URL
 5. Deploy!
@@ -94,3 +101,4 @@ npm run dev
 2. Ensure all environment variables are set in both Render and Vercel
 3. The free tier of Render may have cold starts
 4. Monitor your API usage for both Supabase and Google AI
+5. Make sure Python 3.8+ is available in your Render environment for AI features
