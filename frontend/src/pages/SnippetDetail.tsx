@@ -6,6 +6,8 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4872';
+
 interface Snippet {
   id: string;
   title: string;
@@ -28,7 +30,7 @@ const SnippetDetail = () => {
   useEffect(() => {
     const fetchSnippet = async () => {
       try {
-        const response = await fetch(`http://localhost:4872/templates/${id}`);
+        const response = await fetch(`${API_URL}/templates/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch snippet');
         }

@@ -7,6 +7,8 @@ import { ChatMessage } from "@/types";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4872';
+
 interface Recommendation {
   id: string;
   title: string;
@@ -59,7 +61,7 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:4872/recommend', {
+      const response = await fetch(`${API_URL}/recommend`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

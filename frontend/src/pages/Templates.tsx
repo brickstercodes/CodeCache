@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { UploadPasswordModal } from "@/components/UploadPasswordModal";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4872';
+
 interface Template {
   id: string;
   title: string;
@@ -27,7 +29,7 @@ const Templates = () => {
   const fetchTemplates = async (query: string = "") => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:4872/search', {
+      const response = await fetch(`${API_URL}/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

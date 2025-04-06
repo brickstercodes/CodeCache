@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4872';
+
 const Upload = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,11 +66,11 @@ const Upload = () => {
         throw new Error("Upload token not found");
       }
 
-      const response = await fetch('http://localhost:4872/templates', {
+      const response = await fetch(`${API_URL}/templates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'uploadToken': uploadToken
+          'Authorization': `Bearer ${uploadToken}`
         },
         body: JSON.stringify({
           title: formData.title,
