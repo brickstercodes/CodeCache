@@ -15,19 +15,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Password verification middleware
-const verifyUploadPassword = (req, res, next) => {
-  const { uploadtoken } = req.headers;
-
-  if (!uploadtoken) {
-    return res.status(401).json({ error: "Upload token required" });
-  }
-
-  // For now, we'll just verify that a token exists
-  // In a production environment, you would want to store and verify against valid tokens
-  next();
-};
-
 // Password verification endpoint
 app.post("/verify-upload-password", (req, res) => {
   const { password } = req.body;
@@ -36,24 +23,52 @@ app.post("/verify-upload-password", (req, res) => {
     return res.status(400).json({ error: "Password required" });
   }
 
-  const hashedPassword = crypto
-    .createHash("sha256")
-    .update(process.env.UPLOAD_PASSWORD || "default-password")
-    .digest("hex");
+  const correctPassword = process.env.UPLOAD_PASSWORD || "default-password";
 
-  const hashedInput = crypto
-    .createHash("sha256")
-    .update(password)
-    .digest("hex");
+  if (password === correctPassword) {
+    // Generate a simple token that includes the password and timestamp
+    const timestamp = Date.now();
+    const token = `${password}_${timestamp}`;
 
-  if (hashedInput === hashedPassword) {
-    // Generate a session token
-    const token = crypto.randomBytes(32).toString("hex");
     res.json({ success: true, token });
   } else {
     res.status(401).json({ error: "Invalid password" });
   }
 });
+
+// Password verification middleware
+const verifyUploadPassword = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Upload token required" });
+  }
+
+  const uploadToken = authHeader.split(" ")[1];
+  if (!uploadToken) {
+    return res.status(401).json({ error: "Upload token required" });
+  }
+
+  try {
+    // Extract password from token
+    const [password, timestamp] = uploadToken.split("_");
+    const tokenAge = Date.now() - parseInt(timestamp);
+
+    // Token expires after 1 hour
+    if (tokenAge > 3600000) {
+      return res.status(401).json({ error: "Token expired" });
+    }
+
+    const correctPassword = process.env.UPLOAD_PASSWORD || "default-password";
+
+    if (password !== correctPassword) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid token format" });
+  }
+};
 
 // 1️⃣ Get all templates
 app.get("/templates", async (req, res) => {
@@ -376,16 +391,11 @@ app.post("/prompts", verifyUploadPassword, async (req, res) => {
     // Generate AI bio for the prompt
     const bioProcess = spawn("python3", [
       "AI_chat.py",
-      JSON.stringify({
-        title,
-        description,
-        prompt_text,
-        model,
-        category,
-        example_response,
-        tags: tags.join(", "),
-        publisher,
-      }),
+      "bio",
+      Buffer.from(title).toString("base64"),
+      model,
+      Buffer.from(description).toString("base64"),
+      Buffer.from(prompt_text).toString("base64"),
     ]);
 
     let bioOutput = "";
@@ -397,54 +407,75 @@ app.post("/prompts", verifyUploadPassword, async (req, res) => {
 
     bioProcess.stderr.on("data", (data) => {
       bioError += data.toString();
+      console.error(`AI_chat.py bio error: ${data}`);
     });
 
-    await new Promise((resolve, reject) => {
-      bioProcess.on("close", (code) => {
-        if (code !== 0) {
-          console.error("Bio generation failed:", bioError);
-          reject(new Error("Failed to generate AI bio"));
-        } else {
-          resolve();
+    bioProcess.on("error", (error) => {
+      console.error("Failed to start bio process:", error);
+      return res
+        .status(500)
+        .json({ error: "Failed to start AI bio generation" });
+    });
+
+    bioProcess.on("close", async (bioCode) => {
+      if (bioCode !== 0) {
+        console.error(
+          "Bio process failed with code:",
+          bioCode,
+          "Error:",
+          bioError
+        );
+        return res.status(500).json({
+          error: "AI bio generation failed",
+          details: bioError,
+        });
+      }
+
+      try {
+        let ai_bio = null;
+
+        try {
+          if (bioOutput) {
+            const bioData = JSON.parse(bioOutput);
+            ai_bio = bioData.bio;
+          }
+        } catch (e) {
+          console.error("Failed to parse bio output:", e);
         }
-      });
+
+        // Insert into DB with AI bio
+        const { data, error } = await supabase
+          .from("prompt_templates")
+          .insert([
+            {
+              title,
+              description,
+              prompt_text,
+              model,
+              category,
+              example_response,
+              tags,
+              publisher,
+              ai_bio,
+              updated_at: new Date().toISOString(),
+            },
+          ])
+          .select();
+
+        if (error) {
+          console.error("Supabase insert error:", error);
+          throw error;
+        }
+
+        res.json(data[0]);
+      } catch (error) {
+        console.error("Error in final processing:", error);
+        res.status(500).json({ error: error.message });
+      }
     });
-
-    let ai_bio;
-    try {
-      ai_bio = JSON.parse(bioOutput.trim());
-    } catch (error) {
-      console.error("Failed to parse AI bio:", error);
-      return res.status(500).json({ error: "Failed to generate AI bio" });
-    }
-
-    // Insert into Supabase
-    const { data, error } = await supabase
-      .from("prompt_templates")
-      .insert([
-        {
-          title,
-          description,
-          prompt_text,
-          model,
-          category,
-          example_response,
-          tags,
-          publisher,
-          ai_bio,
-        },
-      ])
-      .select();
-
-    if (error) {
-      console.error("Supabase insert error:", error);
-      return res.status(500).json({ error: "Failed to save prompt" });
-    }
-
-    res.json(data[0]);
   } catch (error) {
-    console.error("Error in /prompts:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error in prompt upload:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 

@@ -12,9 +12,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4872';
 
 const PromptUpload = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -28,13 +32,36 @@ const PromptUpload = () => {
     publisher: ""
   });
 
-  // Check for upload token
+  // Check for upload token and redirect if not found
   useEffect(() => {
-    const uploadToken = sessionStorage.getItem("uploadToken");
-    if (!uploadToken) {
-      window.location.href = "/prompts";
-    }
-  }, []);
+    const checkAuth = () => {
+      const uploadToken = sessionStorage.getItem("uploadToken");
+      if (!uploadToken) {
+        navigate("/prompts");
+        toast({
+          title: "Authentication required",
+          description: "Please authenticate to upload prompts",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if token is expired
+      const [, timestamp] = uploadToken.split("_");
+      const tokenAge = Date.now() - parseInt(timestamp);
+      if (tokenAge > 3600000) { // 1 hour
+        sessionStorage.removeItem("uploadToken");
+        navigate("/prompts");
+        toast({
+          title: "Authentication expired",
+          description: "Please authenticate again to continue",
+          variant: "destructive",
+        });
+      }
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -52,6 +79,11 @@ const PromptUpload = () => {
     setIsSubmitting(true);
 
     try {
+      // Validate required fields
+      if (!formData.title.trim() || !formData.description.trim() || !formData.prompt_text.trim() || !formData.model || !formData.category) {
+        throw new Error("Please fill in all required fields");
+      }
+
       // Convert tags string to array
       const tagsArray = formData.tags
         .split(',')
@@ -60,14 +92,15 @@ const PromptUpload = () => {
 
       const uploadToken = sessionStorage.getItem("uploadToken");
       if (!uploadToken) {
-        throw new Error("Upload token not found");
+        throw new Error("Authentication required");
       }
 
-      const response = await fetch('http://localhost:4872/prompts', {
+      console.log('Attempting to upload prompt to:', API_URL);
+      const response = await fetch(`${API_URL}/prompts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'uploadToken': uploadToken
+          'Authorization': `Bearer ${uploadToken}`
         },
         body: JSON.stringify({
           ...formData,
@@ -75,12 +108,18 @@ const PromptUpload = () => {
         }),
       });
 
+      console.log('Upload response status:', response.status);
+      const data = await response.json();
+      console.log('Upload response data:', data);
+
       if (!response.ok) {
-        const data = await response.json();
+        if (response.status === 401) {
+          sessionStorage.removeItem("uploadToken");
+          navigate("/prompts");
+          throw new Error("Authentication expired. Please authenticate again.");
+        }
         throw new Error(data.error || 'Failed to upload prompt');
       }
-
-      const data = await response.json();
       
       toast({
         title: "Prompt uploaded successfully",
@@ -88,11 +127,28 @@ const PromptUpload = () => {
       });
       setSubmitted(true);
     } catch (error) {
-      toast({
-        title: "Error uploading prompt",
-        description: error instanceof Error ? error.message : "Please try again later",
-        variant: "destructive",
-      });
+      console.error('Upload error:', error);
+      
+      // Handle specific error cases
+      if (error instanceof Error) {
+        if (error.message.includes("Authentication")) {
+          // Clear token and redirect to auth
+          sessionStorage.removeItem("uploadToken");
+          navigate("/prompts");
+        }
+        
+        toast({
+          title: "Error uploading prompt",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error uploading prompt",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -246,7 +302,7 @@ const PromptUpload = () => {
               placeholder="Provide an example of a good response from this prompt..."
               value={formData.example_response}
               onChange={handleChange}
-              className="min-h-[100px]"
+              className="font-mono min-h-[150px] whitespace-pre-wrap"
             />
           </div>
 

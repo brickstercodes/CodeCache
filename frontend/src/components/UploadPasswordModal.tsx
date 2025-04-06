@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface UploadPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,7 +35,8 @@ export function UploadPasswordModal({
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4872/verify-upload-password", {
+      console.log('Attempting to verify password with API:', API_URL);
+      const response = await fetch(`${API_URL}/verify-upload-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,36 +45,34 @@ export function UploadPasswordModal({
       });
 
       const data = await response.json();
+      console.log('Server response:', response.status, data);
 
-      if (response.ok && data.success) {
+      if (response.ok && data.success && data.token) {
         // Store the token in sessionStorage
         sessionStorage.setItem("uploadToken", data.token);
-        
-        // Clear the password field
-        setPassword("");
-        
-        // Show success toast
         toast({
           title: "Access granted",
           description: "You can now upload content",
         });
-
-        // Close the modal
+        setPassword(""); // Clear password field
         onClose();
-
-        // Use window.location for a full page refresh to ensure token is loaded
-        window.location.href = targetPath;
+        navigate(targetPath);
       } else {
         throw new Error(data.error || "Invalid password");
       }
     } catch (error) {
+      console.error('Password verification error:', error);
+      // Only clear token if there's an authentication error
+      if (error instanceof Error && error.message.includes("Invalid password")) {
+        sessionStorage.removeItem("uploadToken");
+      }
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Invalid password",
+        title: "Authentication Failed",
+        description: error instanceof Error 
+          ? error.message 
+          : "Could not verify password. Please try again.",
         variant: "destructive",
       });
-      // Clear the password field on error
-      setPassword("");
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +102,7 @@ export function UploadPasswordModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || !password.trim()}>
               {isLoading ? (
                 <>
                   <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
