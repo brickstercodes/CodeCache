@@ -15,8 +15,9 @@ const corsOptions = {
           "https://code-cache.vercel.app",
           "https://codecache.vercel.app",
           "https://code-cache-flame.vercel.app",
+          "https://codecache.anugrahshetty.tech",
           "http://localhost:5173",
-        ] // Add all possible Vercel domains
+        ] // Add all possible domains
       : "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
