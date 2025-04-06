@@ -12,22 +12,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
-const Upload = () => {
+const PromptUpload = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    language: "",
-    code_snippet: "",
+    prompt_text: "",
+    model: "",
+    category: "",
+    example_response: "",
     tags: "",
     publisher: ""
   });
-  const [showPreview, setShowPreview] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -36,8 +35,8 @@ const Upload = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, language: value }));
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,35 +50,31 @@ const Upload = () => {
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
-      const response = await fetch('http://localhost:4872/templates', {
+      const response = await fetch('http://localhost:4872/prompts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          code_snippet: formData.code_snippet,
-          language: formData.language,
-          publisher: formData.publisher,
+          ...formData,
           tags: tagsArray
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload snippet');
+        throw new Error('Failed to upload prompt');
       }
 
       const data = await response.json();
       
       toast({
-        title: "Snippet uploaded successfully",
-        description: "Your code snippet has been added to the library",
+        title: "Prompt uploaded successfully",
+        description: "Your prompt has been added to the library",
       });
       setSubmitted(true);
     } catch (error) {
       toast({
-        title: "Error uploading snippet",
+        title: "Error uploading prompt",
         description: error instanceof Error ? error.message : "Please try again later",
         variant: "destructive",
       });
@@ -92,21 +87,22 @@ const Upload = () => {
     setFormData({
       title: "",
       description: "",
-      language: "",
-      code_snippet: "",
+      prompt_text: "",
+      model: "",
+      category: "",
+      example_response: "",
       tags: "",
       publisher: ""
     });
     setSubmitted(false);
-    setShowPreview(false);
   };
 
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">Add to the Cache</h1>
+        <h1 className="text-3xl font-bold">Add to Prompt Cache</h1>
         <p className="text-muted-foreground">
-          Contribute to the library by uploading your own code snippets
+          Share your effective prompts with the community
         </p>
       </div>
 
@@ -115,14 +111,14 @@ const Upload = () => {
           <div className="flex justify-center">
             <CheckCircle className="h-16 w-16 text-green-500" />
           </div>
-          <h2 className="text-2xl font-bold">Snippet Cached Successfully!</h2>
+          <h2 className="text-2xl font-bold">Prompt Cached Successfully!</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Thank you for contributing to Code Cache. Your snippet will be reviewed and made available soon.
+            Thank you for contributing to the Prompt Cache. Your prompt will help others achieve better results.
           </p>
           <div className="flex justify-center gap-4 pt-4">
-            <Button onClick={handleReset}>Upload Another</Button>
-            <Button variant="outline" onClick={() => window.location.href = "/templates"}>
-              Browse Templates
+            <Button onClick={handleReset}>Add Another</Button>
+            <Button variant="outline" onClick={() => window.location.href = "/prompts"}>
+              Browse Prompts
             </Button>
           </div>
         </div>
@@ -134,7 +130,7 @@ const Upload = () => {
               <Input
                 id="title"
                 name="title"
-                placeholder="E.g., React useState Hook Example"
+                placeholder="E.g., Code Refactoring Assistant"
                 value={formData.title}
                 onChange={handleChange}
                 required
@@ -155,27 +151,43 @@ const Upload = () => {
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="language">Language</Label>
+              <Label htmlFor="model">Model</Label>
               <Select
-                value={formData.language}
-                onValueChange={handleSelectChange}
+                value={formData.model}
+                onValueChange={(value) => handleSelectChange("model", value)}
                 required
               >
-                <SelectTrigger id="language">
-                  <SelectValue placeholder="Select language" />
+                <SelectTrigger id="model">
+                  <SelectValue placeholder="Select AI model" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="javascript">JavaScript</SelectItem>
-                  <SelectItem value="typescript">TypeScript</SelectItem>
-                  <SelectItem value="python">Python</SelectItem>
-                  <SelectItem value="html">HTML</SelectItem>
-                  <SelectItem value="css">CSS</SelectItem>
-                  <SelectItem value="java">Java</SelectItem>
-                  <SelectItem value="csharp">C#</SelectItem>
-                  <SelectItem value="php">PHP</SelectItem>
-                  <SelectItem value="ruby">Ruby</SelectItem>
-                  <SelectItem value="go">Go</SelectItem>
-                  <SelectItem value="rust">Rust</SelectItem>
+                  <SelectItem value="gpt-4">GPT-4</SelectItem>
+                  <SelectItem value="gpt-3.5">GPT-3.5</SelectItem>
+                  <SelectItem value="claude-3">Claude 3</SelectItem>
+                  <SelectItem value="claude-2">Claude 2</SelectItem>
+                  <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => handleSelectChange("category", value)}
+                required
+              >
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="code-generation">Code Generation</SelectItem>
+                  <SelectItem value="code-review">Code Review</SelectItem>
+                  <SelectItem value="debugging">Debugging</SelectItem>
+                  <SelectItem value="documentation">Documentation</SelectItem>
+                  <SelectItem value="testing">Testing</SelectItem>
+                  <SelectItem value="optimization">Optimization</SelectItem>
+                  <SelectItem value="architecture">Architecture</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -187,7 +199,7 @@ const Upload = () => {
             <Textarea
               id="description"
               name="description"
-              placeholder="Provide a brief description of your code snippet..."
+              placeholder="Describe what this prompt is good for and how to use it effectively..."
               value={formData.description}
               onChange={handleChange}
               required
@@ -195,41 +207,28 @@ const Upload = () => {
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label htmlFor="code_snippet">Code</Label>
-              {formData.code_snippet && formData.language && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowPreview(!showPreview)}
-                >
-                  {showPreview ? "Edit Code" : "Preview Code"}
-                </Button>
-              )}
-            </div>
-            
-            {showPreview && formData.code_snippet && formData.language ? (
-              <div className="h-60 overflow-auto">
-                <SyntaxHighlighter 
-                  language={formData.language.toLowerCase()}
-                  style={oneDark}
-                  customStyle={{ borderRadius: '0.5rem' }}
-                >
-                  {formData.code_snippet}
-                </SyntaxHighlighter>
-              </div>
-            ) : (
-              <Textarea
-                id="code_snippet"
-                name="code_snippet"
-                placeholder="Paste your code here..."
-                className="font-mono h-60"
-                value={formData.code_snippet}
-                onChange={handleChange}
-                required
-              />
-            )}
+            <Label htmlFor="prompt_text">Prompt Template</Label>
+            <Textarea
+              id="prompt_text"
+              name="prompt_text"
+              placeholder="Enter your prompt template. Use {placeholders} for variables if applicable..."
+              value={formData.prompt_text}
+              onChange={handleChange}
+              className="font-mono min-h-[200px]"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="example_response">Example Response</Label>
+            <Textarea
+              id="example_response"
+              name="example_response"
+              placeholder="Provide an example of a good response from this prompt..."
+              value={formData.example_response}
+              onChange={handleChange}
+              className="min-h-[100px]"
+            />
           </div>
 
           <div className="space-y-2">
@@ -237,7 +236,7 @@ const Upload = () => {
             <Input
               id="tags"
               name="tags"
-              placeholder="E.g., react, hooks, state-management"
+              placeholder="E.g., python, refactoring, clean-code"
               value={formData.tags}
               onChange={handleChange}
             />
@@ -253,7 +252,7 @@ const Upload = () => {
               ) : (
                 <>
                   <UploadIcon className="h-4 w-4 mr-2" />
-                  Cache Snippet
+                  Cache Prompt
                 </>
               )}
             </Button>
@@ -264,4 +263,4 @@ const Upload = () => {
   );
 };
 
-export default Upload;
+export default PromptUpload; 

@@ -223,41 +223,35 @@ app.post("/templates", async (req, res) => {
   }
 });
 
-// 4️⃣ Search templates using AI embeddings
+// 4️⃣ Search templates using text search
 app.post("/search", async (req, res) => {
   try {
     const { query } = req.body;
+    console.log("Search query:", query);
 
-    // Call Python script to generate query embedding
-    const pythonProcess = spawn("python3", ["embeddings.py", "--query", query]);
+    if (!query.trim()) {
+      const { data, error } = await supabase.from("code_templates").select("*");
+      if (error) throw error;
+      return res.json(data);
+    }
 
-    let embedding = "";
-    pythonProcess.stdout.on("data", (data) => {
-      embedding += data.toString();
-    });
+    // Search in title, description, and ai_bio using Postgres text search
+    const { data, error } = await supabase
+      .from("code_templates")
+      .select("*")
+      .or(
+        `title.ilike.%${query}%,description.ilike.%${query}%,ai_bio.ilike.%${query}%`
+      );
 
-    pythonProcess.stderr.on("data", (data) => {
-      console.error(`embeddings.py error: ${data}`);
-    });
+    if (error) {
+      console.error("Supabase search error:", error);
+      throw error;
+    }
 
-    pythonProcess.on("close", async (code) => {
-      if (code !== 0) {
-        return res
-          .status(500)
-          .json({ error: "Error generating search embedding" });
-      }
-
-      try {
-        const { data, error } = await supabase.rpc("match_templates", {
-          query_embedding: JSON.parse(embedding.trim()),
-        });
-        if (error) throw error;
-        res.json(data);
-      } catch (error) {
-        res.status(500).json({ error: error.message });
-      }
-    });
+    console.log("Search results:", data);
+    res.json(data);
   } catch (error) {
+    console.error("Error in search endpoint:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -309,6 +303,133 @@ app.post("/recommend", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Prompt Cache endpoints
+app.post("/prompts", async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      prompt_text,
+      model,
+      category,
+      example_response,
+      tags,
+      publisher,
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !title ||
+      !description ||
+      !prompt_text ||
+      !model ||
+      !category ||
+      !publisher
+    ) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Generate AI bio for the prompt
+    const bioProcess = spawn("python3", [
+      "AI_chat.py",
+      JSON.stringify({
+        title,
+        description,
+        prompt_text,
+        model,
+        category,
+        example_response,
+        tags: tags.join(", "),
+        publisher,
+      }),
+    ]);
+
+    let bioOutput = "";
+    let bioError = "";
+
+    bioProcess.stdout.on("data", (data) => {
+      bioOutput += data.toString();
+    });
+
+    bioProcess.stderr.on("data", (data) => {
+      bioError += data.toString();
+    });
+
+    await new Promise((resolve, reject) => {
+      bioProcess.on("close", (code) => {
+        if (code !== 0) {
+          console.error("Bio generation failed:", bioError);
+          reject(new Error("Failed to generate AI bio"));
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    let ai_bio;
+    try {
+      ai_bio = JSON.parse(bioOutput.trim());
+    } catch (error) {
+      console.error("Failed to parse AI bio:", error);
+      return res.status(500).json({ error: "Failed to generate AI bio" });
+    }
+
+    // Insert into Supabase
+    const { data, error } = await supabase
+      .from("prompt_templates")
+      .insert([
+        {
+          title,
+          description,
+          prompt_text,
+          model,
+          category,
+          example_response,
+          tags,
+          publisher,
+          ai_bio,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("Supabase insert error:", error);
+      return res.status(500).json({ error: "Failed to save prompt" });
+    }
+
+    res.json(data[0]);
+  } catch (error) {
+    console.error("Error in /prompts:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/prompts/search", async (req, res) => {
+  try {
+    const { query = "" } = req.body;
+
+    let dbQuery = supabase.from("prompt_templates").select("*");
+
+    if (query) {
+      dbQuery = dbQuery.or(
+        `title.ilike.%${query}%,description.ilike.%${query}%,ai_bio.ilike.%${query}%`
+      );
+    }
+
+    const { data, error } = await dbQuery;
+
+    if (error) {
+      console.error("Supabase search error:", error);
+      return res.status(500).json({ error: "Failed to search prompts" });
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error("Error in /prompts/search:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
