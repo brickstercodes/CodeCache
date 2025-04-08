@@ -1,24 +1,41 @@
-# Snippet Library
+# 📚 Snippet Library
 
-A modern code snippet and prompt management system with AI-powered features.
+A modern, AI-powered platform for managing and sharing code snippets and prompts. Perfect for developers who want to organize their code fragments and leverage AI assistance.
 
-## Project Structure
+## ✨ Features
 
-- `frontend/`: React/Vite frontend application
-- `backend/`: Express.js and Python backend services
+- 🔍 Smart search with AI-powered suggestions
+- 💾 Store and organize code snippets
+- 🤖 AI-assisted snippet descriptions and tagging
+- 🌙 Dark/Light theme support
+- 🔐 Secure upload system
+- 📋 Easy copy-to-clipboard functionality
 
-## Prerequisites
+## 🛠️ Tech Stack
 
-- Node.js 16+
-- Python 3.8+
+- **Frontend**: React + Vite with TypeScript
+- **Backend**: Express.js + Python
+- **Database**: Supabase
+- **AI Integration**: Google Gemini API
+
+## 🚀 Live Demo
+
+[Visit Snippet Library](codecache.anugrahshetty.tech)
+
+## 🏗️ Local Development Setup
+
+### Prerequisites
+
+- Node.js 16 or higher
+- Python 3.8 or higher
 - Supabase account
-- Google AI (for Gemini API)
+- Google AI API key (Gemini)
 
-## Environment Variables
+### Environment Configuration
 
-### Backend (.env)
+1. **Backend** (Create `backend/.env`):
 
-```
+```env
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_key
 GOOGLE_API_KEY=your_gemini_api_key
@@ -26,79 +43,57 @@ UPLOAD_PASSWORD=your_secure_password
 PORT=4872
 ```
 
-### Frontend (.env)
+2. **Frontend** (Create `frontend/.env`):
 
-```
+```env
 VITE_API_URL=http://localhost:4872
 ```
 
-## Local Development
+### Running Locally
 
-1. Install backend dependencies:
+1. **Set up backend:**
 
 ```bash
 cd backend
 npm install
 pip install -r requirements.txt
+node server.js
 ```
 
-2. Install frontend dependencies:
+The backend will run on `http://localhost:4872`
+
+2. **Set up frontend:**
 
 ```bash
 cd frontend
 npm install
-```
-
-3. Start the backend:
-
-```bash
-cd backend
-node server.js
-```
-
-4. Start the frontend:
-
-```bash
-cd frontend
 npm run dev
 ```
 
-## Deployment
+The frontend will run on `http://localhost:5173` and will communicate with the backend on port 4872.
 
-### Backend (Render)
+## 🌟 Contributing
 
-1. Create a new Web Service on Render
-2. Connect your GitHub repository
-3. Use the following settings:
-   - Root Directory: `backend`
-   - Build Command: `npm install`
-   - Start Command: `node server.js`
-   - Environment: Node
-4. Add environment variables in Render dashboard:
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `GOOGLE_API_KEY`
-   - `UPLOAD_PASSWORD`
-   - `NODE_ENV`: `production`
-5. The service will be available at `https://your-service-name.onrender.com`
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-### Frontend (Vercel)
+## 📝 License
 
-1. Push your code to GitHub
-2. Import the repository in Vercel
-3. Set the following:
-   - Framework Preset: Vite
-   - Root Directory: `frontend`
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-4. Add environment variables in Vercel dashboard:
-   - `VITE_API_URL`: Your Render backend URL
-5. Deploy!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Important Notes
+## 🤝 Support
 
-1. Update CORS settings in `backend/server.js` with your Vercel domain
-2. Ensure all environment variables are set in both Render and Vercel
-3. The free tier of Render may have cold starts
-4. Monitor your API usage for both Supabase and Google AI
-5. Make sure Python 3.8+ is available in your Render environment for AI features
+If you find this project helpful, please give it a ⭐️ on GitHub!
+
+For issues, feature requests, or questions, please [open an issue](../../issues).
+
+## 👥 Contributors
+
+Soon...
+
+---
+
+Made with ❤️ by Anugrah Shetty
